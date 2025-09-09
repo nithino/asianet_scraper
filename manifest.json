@@ -1,0 +1,11 @@
+{
+  "domain": "asianet_scraper",
+  "name": "Asianet Broadband Scraper",
+  "version": "1.0.0",
+  "documentation": "https://github.com/nithino/asianet_scraper",
+  "dependencies": [],
+  "codeowners": ["@nithino"],
+  "requirements": ["beautifulsoup4==4.12.2", "aiohttp>=3.8.0"],
+  "iot_class": "cloud_polling",
+  "config_flow": false
+}
