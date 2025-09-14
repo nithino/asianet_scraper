@@ -47,3 +47,7 @@ logger:
 
 The configuration creates `sensor.asianet_data`. 
 The sensor `sensor.asianet_data` shows connected, disconnected, or unavailable status. All API Endpoints will be displayed as attributes to the sensor. 
+
+
+You can find basic template sensor configurations in `sensors.yaml`.
+You can add contents in the `sensors.yaml` file either in configuration under `sensor` or in a seperate `sensor.yaml` file if you keep seperate files. 
