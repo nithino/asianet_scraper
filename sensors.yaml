@@ -1,0 +1,311 @@
+sensor:
+  - platform: template
+    sensors:
+      # Asianet Sensors Begins
+      # Current Usage - extracts from json_data.plan.curent_usage
+      asianet_current_usage:
+        friendly_name: "Asianet Current Usage"
+        unit_of_measurement: "GB"
+        device_class: data_size
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.plan and data.plan.curent_usage %}
+              {{ data.plan.curent_usage | float | round(2) }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:download
+        attribute_templates:
+          unit: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.curent_usage_unit if data.plan and data.plan.curent_usage_unit else 'GB' }}
+            {% else %}
+              GB
+            {% endif %}
+          last_reset: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.last_data_reset if data.plan and data.plan.last_data_reset else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          next_reset: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.next_data_reset if data.plan and data.plan.next_data_reset else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+
+      # Data Balance - extracts from json_data.plan.data_balance
+      asianet_data_balance:
+        friendly_name: "Asianet Data Balance"
+        unit_of_measurement: "GB"
+        device_class: data_size
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.plan and data.plan.data_balance %}
+              {% set balance_str = data.plan.data_balance %}
+              {% if balance_str %}
+                {% set balance_num = balance_str | regex_replace(' GB', '') | float %}
+                {{ balance_num | round(2) }}
+              {% else %}
+                unavailable
+              {% endif %}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:database
+        attribute_templates:
+          raw_value: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.data_balance if data.plan and data.plan.data_balance else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+
+      # Plan Data Limit - extracts from json_data.plan.plan_data
+      asianet_plan_data_limit:
+        friendly_name: "Asianet Plan Data Limit"
+        unit_of_measurement: "GB"
+        device_class: data_size
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.plan and data.plan.plan_data %}
+              {{ data.plan.plan_data | float | round(2) }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:package-variant
+        attribute_templates:
+          unit: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.plan_data_unit if data.plan and data.plan.plan_data_unit else 'GB' }}
+            {% else %}
+              GB
+            {% endif %}
+
+      # Usage Percentage - calculated field
+      asianet_usage_percentage:
+        friendly_name: "Asianet Usage Percentage"
+        unit_of_measurement: "%"
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.plan and data.plan.curent_usage and data.plan.plan_data %}
+              {% set used = data.plan.curent_usage | float %}
+              {% set total = data.plan.plan_data | float %}
+              {{ ((used / total) * 100) | round(1) if total > 0 else 0 }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:percent
+        attribute_templates:
+          used_gb: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.curent_usage if data.plan and data.plan.curent_usage else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          total_gb: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.plan_data if data.plan and data.plan.plan_data else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+
+      # Plan Information
+      asianet_plan_info:
+        friendly_name: "Asianet Plan Info"
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.subscriber and data.subscriber.active_plan_name %}
+              {{ data.subscriber.active_plan_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:package
+        attribute_templates:
+          plan_name: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.active_plan_name if data.subscriber and data.subscriber.active_plan_name else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          plan_rate: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.plan_rate if data.subscriber and data.subscriber.plan_rate else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          plan_speed: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.plan_speed if data.subscriber and data.subscriber.plan_speed else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          fup_speed: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.fup_speed if data.subscriber and data.subscriber.fup_speed else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          plan_description: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.plan_description if data.subscriber and data.subscriber.plan_description else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          validity_days: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.validity_days if data.subscriber and data.subscriber.validity_days else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+
+      # Expiry Date
+      asianet_plan_expiry:
+        friendly_name: "Asianet Plan Expiry"
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.subscriber and data.subscriber.expiry_date %}
+              {{ data.subscriber.expiry_date }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:calendar
+        attribute_templates:
+          is_plan_expired: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.is_plan_expired if data.subscriber and data.subscriber.is_plan_expired is not none else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          is_plan_active: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.subscriber.is_plan_active if data.subscriber and data.subscriber.is_plan_active is not none else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+
+      # Days Until Expiry (calculated)
+      asianet_days_until_expiry:
+        friendly_name: "Asianet Days Until Expiry"
+        unique_id: "asianet_days_until_expiry"
+        unit_of_measurement: "days"
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.subscriber and data.subscriber.expiry_date %}
+              {% set expiry = data.subscriber.expiry_date %}
+              {% set today = now().date() %}
+              {% set expiry_date = strptime(expiry, '%d %b %Y').date() %}
+              {{ (expiry_date - today).days }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:calendar-clock
+
+      # Next Data Reset Info
+      asianet_next_reset:
+        friendly_name: "Asianet Next Reset"
+        value_template: >
+          {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+          {% if json_data %}
+            {% set data = json_data | from_json %}
+            {% if data.plan and data.plan.next_data_reset %}
+              {{ data.plan.next_data_reset }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+        icon_template: mdi:calendar-refresh
+        attribute_templates:
+          last_reset: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.last_data_reset if data.plan and data.plan.last_data_reset else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          reset_type: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ 'Monthly' if data.plan and data.plan.data_reset_type == '1' else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+          reset_day_limit: >
+            {% set json_data = state_attr('sensor.asianet_data', 'json_data') %}
+            {% if json_data %}
+              {% set data = json_data | from_json %}
+              {{ data.plan.data_reset_day_limit if data.plan and data.plan.data_reset_day_limit else 'Unknown' }}
+            {% else %}
+              Unknown
+            {% endif %}
+      # Asianet Sensors Ends ------
